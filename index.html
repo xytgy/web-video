@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>未来视界 | NEXUS VIEW</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -34,7 +35,6 @@
             color: #e2e8f0;
         }
         
-        /* 极其轻微的扫描线，不干扰视频颜色 */
         .scanline-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -50,7 +50,6 @@
             position: relative;
         }
 
-        /* 仅装饰边框，不影响视频 */
         .corner-decoration::before, .corner-decoration::after {
             content: '';
             position: absolute;
@@ -74,7 +73,6 @@
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
         }
 
-        /* 确保视频本身没有任何滤镜 */
         video {
             filter: none !important;
             mix-blend-mode: normal !important;
@@ -95,8 +93,8 @@
         <div class="cyber-card corner-decoration shadow-2xl">
             <div class="flex justify-between items-center px-4 py-2 border-b border-cyber-blue/10 bg-black/40">
                 <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_5px_#22c55e]"></div>
-                    <span class="font-mono text-[10px] text-cyber-blue/80">STATUS: LINK_STABLE</span>
+                    <div id="status-indicator" class="w-2 h-2 bg-yellow-500 rounded-full shadow-[0_0_5px_#eab308]"></div>
+                    <span id="status-text" class="font-mono text-[10px] text-cyber-blue/80">STATUS: INITIALIZING_STREAM</span>
                 </div>
                 <div id="clock" class="font-mono text-[10px] text-cyber-blue/40 italic">TIMESTAMP: 00:00:00</div>
             </div>
@@ -107,16 +105,13 @@
                     class="w-full h-auto block"
                     controls
                     preload="auto"
-                >
-                    <source src="video.mp4" type="video/mp4">
-                    您的浏览器不支持 HTML5 视频播放。
-                </video>
+                ></video>
             </div>
             
             <div class="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
                     <h2 class="text-xl font-display text-white tracking-wider">VIDEO_DATA_SOURCE_01</h2>
-                    <p class="text-cyber-blue/40 text-xs font-mono mt-1">FORMAT: MP4 / CODEC: H.264 / SIZE: EXTERNAL</p>
+                    <p class="text-cyber-blue/40 text-xs font-mono mt-1">FORMAT: HLS (M3U8) / STREAMING / SIZE: ADAPTIVE</p>
                 </div>
                 
                 <div class="flex gap-4">
@@ -128,14 +123,14 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
-                        DOWNLOAD FILE
+                        DOWNLOAD RAW FILE
                     </a>
                 </div>
             </div>
 
             <div class="grid grid-cols-3 border-t border-cyber-blue/10 bg-black/20 text-[9px] font-mono text-cyber-blue/30 italic">
-                <div class="p-2 border-r border-cyber-blue/10 text-center">STORAGE: CLOUD_SYNC</div>
-                <div class="p-2 border-r border-cyber-blue/10 text-center">ENCRYPTION: NONE</div>
+                <div class="p-2 border-r border-cyber-blue/10 text-center">STORAGE: DISTRIBUTED_NODE</div>
+                <div class="p-2 border-r border-cyber-blue/10 text-center">PROTOCOL: HLS_STREAM</div>
                 <div class="p-2 text-center">ACCESS: PUBLIC</div>
             </div>
         </div>
@@ -150,9 +145,50 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // GitHub Pages 兼容性检查：如果是通过 file:// 打开，提醒用户
+        // HLS 流媒体播放逻辑
+        const video = document.getElementById('mainVideo');
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+        
+        // 视频源替换为切片后的 m3u8 文件
+        const videoSrc = 'index.m3u8'; 
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                // 流解析成功，更新UI状态为绿色稳定
+                statusIndicator.classList.replace('bg-yellow-500', 'bg-green-500');
+                statusIndicator.classList.replace('shadow-[0_0_5px_#eab308]', 'shadow-[0_0_5px_#22c55e]');
+                statusText.innerText = 'STATUS: STREAM_LINK_STABLE';
+            });
+            
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) {
+                    statusIndicator.classList.replace('bg-green-500', 'bg-red-500');
+                    statusIndicator.classList.replace('bg-yellow-500', 'bg-red-500');
+                    statusIndicator.classList.replace('shadow-[0_0_5px_#22c55e]', 'shadow-[0_0_5px_#ef4444]');
+                    statusText.innerText = 'STATUS: STREAM_ERROR';
+                }
+            });
+        }
+        // 兼容原生支持 HLS 的浏览器 (如 Safari)
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata', function() {
+                statusIndicator.classList.replace('bg-yellow-500', 'bg-green-500');
+                statusIndicator.classList.replace('shadow-[0_0_5px_#eab308]', 'shadow-[0_0_5px_#22c55e]');
+                statusText.innerText = 'STATUS: NATIVE_LINK_STABLE';
+            });
+        }
+
+        // GitHub Pages / 本地运行检查
         if (window.location.protocol === 'file:') {
-            console.warn("注意：直接双击打开 HTML 可能导致视频无法加载，请上传至 GitHub 或使用本地服务器运行。");
+            console.warn("警告：直接双击打开 HTML 无法加载 HLS 流媒体，跨域安全策略会阻止加载 m3u8 文件。请使用 Live Server 插件或上传至服务器运行。");
+            statusIndicator.classList.replace('bg-yellow-500', 'bg-red-500');
+            statusText.innerText = 'STATUS: LOCAL_FILE_PROTOCOL_BLOCKED';
+            alert("请通过本地服务器(如 VSCode Live Server)或上传至远端服务器来查看流媒体视频。直接双击 HTML 无法读取切片文件。");
         }
     </script>
 </body>
