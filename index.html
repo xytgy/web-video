@@ -3,80 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>精彩视频展示</title>
+    <title>未来视界 | NEXUS VIEW</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        cyber: {
+                            blue: '#00f3ff',
+                            dark: '#050b14',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
+            background-color: #050b14;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: #e2e8f0;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        
+        /* 极其轻微的扫描线，不干扰视频颜色 */
+        .scanline-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 100;
         }
-        .video-container {
+
+        .cyber-card {
+            background: rgba(5, 11, 20, 0.95);
+            border: 1px solid rgba(0, 243, 255, 0.2);
             position: relative;
-            overflow: hidden;
-            border-radius: 1rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
-        .gradient-text {
-            background: linear-gradient(to right, #38bdf8, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+
+        /* 仅装饰边框，不影响视频 */
+        .corner-decoration::before, .corner-decoration::after {
+            content: '';
+            position: absolute;
+            width: 20px; height: 20px;
+            border: 2px solid #00f3ff;
+            z-index: 20;
         }
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
+        .corner-decoration::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+        .corner-decoration::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+        .cyber-btn {
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            transition: all 0.2s ease;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid #00f3ff;
+            color: #00f3ff;
         }
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+        .cyber-btn:hover {
+            background: #00f3ff;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+        }
+
+        /* 确保视频本身没有任何滤镜 */
+        video {
+            filter: none !important;
+            mix-blend-mode: normal !important;
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center p-4 md:p-8">
-    <!-- 背景装饰 -->
-    <div class="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[120px] -z-10 animate-pulse"></div>
-    <div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/20 rounded-full blur-[120px] -z-10 animate-pulse" style="animation-delay: 2s;"></div>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8 relative">
+    <div class="scanline-overlay"></div>
 
-    <header class="mb-12 text-center animate-float">
-        <h1 class="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight">
-            <span class="gradient-text">视觉盛宴</span>
+    <header class="mb-8 text-center relative z-10">
+        <h1 class="text-4xl md:text-6xl font-bold tracking-tighter font-display text-white italic">
+            NEXUS <span class="text-cyber-blue">VIEW</span>
         </h1>
-        <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light">
-            沉浸式体验，探索每一个精彩瞬间
-        </p>
+        <p class="text-cyber-blue/50 text-[10px] tracking-[0.4em] uppercase mt-2">Local Data Access Node</p>
     </header>
 
-    <main class="w-full max-w-5xl">
-        <div class="glass-card rounded-3xl p-4 md:p-8 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 group">
-            <div class="video-container bg-black flex items-center justify-center">
+    <main class="w-full max-w-5xl relative z-10">
+        <div class="cyber-card corner-decoration shadow-2xl">
+            <div class="flex justify-between items-center px-4 py-2 border-b border-cyber-blue/10 bg-black/40">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_5px_#22c55e]"></div>
+                    <span class="font-mono text-[10px] text-cyber-blue/80">STATUS: LINK_STABLE</span>
+                </div>
+                <div id="clock" class="font-mono text-[10px] text-cyber-blue/40 italic">TIMESTAMP: 00:00:00</div>
+            </div>
+
+            <div class="bg-black relative">
                 <video 
-                    controls 
-                    autoplay 
-                    loop
+                    id="mainVideo"
                     class="w-full h-auto block"
+                    controls
+                    preload="auto"
                 >
                     <source src="video.mp4" type="video/mp4">
                     您的浏览器不支持 HTML5 视频播放。
                 </video>
             </div>
             
-            <div class="mt-8 flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+            <div class="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-semibold text-white mb-2">作品展示：Video Showcase</h2>
-                    <div class="flex gap-3">
-                        <span class="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-xs font-medium border border-blue-500/20">HD 1080p</span>
-                        <span class="px-3 py-1 bg-purple-500/10 text-purple-400 rounded-full text-xs font-medium border border-purple-500/20">Cinematic</span>
-                    </div>
+                    <h2 class="text-xl font-display text-white tracking-wider">VIDEO_DATA_SOURCE_01</h2>
+                    <p class="text-cyber-blue/40 text-xs font-mono mt-1">FORMAT: MP4 / CODEC: H.264 / SIZE: EXTERNAL</p>
+                </div>
+                
+                <div class="flex gap-4">
+                    <a 
+                        href="video.mp4" 
+                        download="NEXUS_VIEW_VIDEO.mp4" 
+                        class="cyber-btn px-8 py-3 text-xs font-bold tracking-widest flex items-center gap-2"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        DOWNLOAD FILE
+                    </a>
                 </div>
             </div>
+
+            <div class="grid grid-cols-3 border-t border-cyber-blue/10 bg-black/20 text-[9px] font-mono text-cyber-blue/30 italic">
+                <div class="p-2 border-r border-cyber-blue/10 text-center">STORAGE: CLOUD_SYNC</div>
+                <div class="p-2 border-r border-cyber-blue/10 text-center">ENCRYPTION: NONE</div>
+                <div class="p-2 text-center">ACCESS: PUBLIC</div>
+            </div>
+        </div>
     </main>
+
+    <script>
+        // 实时时钟
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = `TIMESTAMP: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // GitHub Pages 兼容性检查：如果是通过 file:// 打开，提醒用户
+        if (window.location.protocol === 'file:') {
+            console.warn("注意：直接双击打开 HTML 可能导致视频无法加载，请上传至 GitHub 或使用本地服务器运行。");
+        }
+    </script>
 </body>
 </html>
